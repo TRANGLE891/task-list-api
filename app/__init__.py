@@ -5,6 +5,10 @@ from .db import db, migrate
 from .models import task, goal
 import os
 
+DB_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
+if (DB_URI is None):
+    print('DB_URI not found')
+
 def create_app(config=None):
     app = Flask(__name__)
 
