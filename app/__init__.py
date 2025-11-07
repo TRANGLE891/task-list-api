@@ -23,6 +23,7 @@ def create_app(config=None):
         # to override the app's default settings for testing
         app.config.update(config)
 
+    print("Migrating db...")
     db.init_app(app)
     migrate.init_app(app, db)
 
