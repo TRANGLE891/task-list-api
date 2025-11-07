@@ -1,25 +1,18 @@
 from flask import Blueprint, abort, make_response, request, Response
-from  app.models.task import Task
-from ..db import db
 from ..slack_api.post_message import post_message_with_slack_bot
-
-task_bp = Blueprint("task_bp",__name__, url_prefix="/tasks")
+from .route_utilities import create_model, validate_model, get_models_with_filters
+from  app.models.task import Task
+from  app.models.goal import Goal
 from datetime import datetime
-@task_bp.post("")
+from ..db import db
+bp = Blueprint("task_bp",__name__, url_prefix="/tasks")
+
+@bp.post("")
 def create_task():
     request_body = request.get_json()
-
-    if request_body.get('title') is None or request_body.get('description') is None:
-        response = {"details": "Invalid data"}
-        abort(make_response(response, 400))
-
-    new_task = Task.from_dict(request_body)
-    db.session.add(new_task)
-    db.session.commit()
-    response = new_task.to_dict()
-    return response, 201
-# Wave 1 + 2:
-@task_bp.get("")
+    return create_model(Task, request_body)
+    
+@bp.get("")
 def get_all_tasks():
     query = db.select(Task)
     title_param = request.args.get("title")
@@ -27,7 +20,6 @@ def get_all_tasks():
         query = query.where(Task.title.ilike(f"%{title_param}%"))
     # Sorting logic
     sort_param = request.args.get("sort")
-
     if sort_param == "asc":
         query = query.order_by(Task.title.asc())   
     elif sort_param == "desc":
@@ -49,9 +41,9 @@ def get_all_tasks():
 
     return response
 
-@task_bp.put("/<id>")
+@bp.put("/<id>")
 def update_task(id):
-    validate_task(id)
+    validate_model(Task, id)
     request_body = request.get_json()
     updated_task = Task.from_dict(request_body)
     updated_task.id = id
@@ -60,45 +52,34 @@ def update_task(id):
 
     return Response(status=204, mimetype="application/json")
 
-@task_bp.delete("/<id>")
+@bp.delete("/<id>")
 def delect_task(id):
-    task = validate_task(id)
+    task = validate_model(Task,id)
     db.session.delete(task)
     db.session.commit()
     return Response(status=204, mimetype="application/json")
 
-@task_bp.patch("/<id>/mark_complete")
+@bp.patch("/<id>/mark_complete")
 def mark_complete(id):
-    task = validate_task(id)
+    task = validate_model(Task,id)
     task.completed_at = datetime.utcnow()
     db.session.commit()
     post_message_with_slack_bot(f"Someone just completed the task {task.title}")
     return Response(status=204, mimetype="application/json")
 
-@task_bp.patch("/<id>/mark_incomplete")
+@bp.patch("/<id>/mark_incomplete")
 def mark_incomplete(id):
-    task = validate_task(id)
+    task = validate_model(Task,id)
     task.completed_at = None
     db.session.commit()
     return Response(status=204, mimetype="application/json")
 
+@bp.get("/<id>")
+def get_tasks_by_id(id):
+    goal = validate_model(Task,id)
+    return goal.to_dict()
 
-def validate_task(id):
-    try:
-        task_id = int(id)
-    except:
-        response = {"message": f"task {task_id} invalid"}
-        abort(make_response(response, 400))
-    
-    query = db.select(Task).where(Task.id == id)
-    task = db.session.scalar(query)
-    
-    if not task:
-        # response = {"message": f"task {task_id} not found"}
-        response = []
-        abort(make_response(response, 404))
-    
-    return task
+
 
 
 

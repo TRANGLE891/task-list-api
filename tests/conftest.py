@@ -31,11 +31,9 @@ def app():
     with app.app_context():
         db.drop_all()
 
-
 @pytest.fixture
 def client(app):
     return app.test_client()
-
 
 # This fixture gets called in every test that
 # references "one_task"
@@ -47,7 +45,6 @@ def one_task(app):
                     completed_at=None)
     db.session.add(new_task)
     db.session.commit()
-
 
 # This fixture gets called in every test that
 # references "three_tasks"
