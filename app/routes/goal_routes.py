@@ -11,16 +11,28 @@ bp = Blueprint("goal_bp",__name__, url_prefix="/goals")
 @bp.post("")
 def create_goal():
     request_body = request.get_json()
-    return create_model(Goal, request_body)
+    # Create goal here so we can shape the response as the tests expect
+    try:
+        new_goal = Goal.from_dict(request_body)
+    except KeyError:
+        # Match test expectation for invalid create payload
+        return make_response({"details": "Invalid data"}, 400)
+
+    db.session.add(new_goal)
+    db.session.commit()
+
+    return make_response({"id": new_goal.id, "title": new_goal.title}, 201)
 
 @bp.get("")
 def get_all_goals():
-    return get_models_with_filters(Goal, request.args)
+    query = db.select(Goal)
+    goals = db.session.scalars(query.order_by(Goal.id))
+    return [g.to_summary_dict() for g in goals]
 
 @bp.get("/<id>")
 def get_one_goal(id):
     goal = validate_model(Goal, id)
-    return goal.to_dict()
+    return goal.to_summary_dict()
 
 @bp.put("/<id>")
 def update_goal(id):
@@ -32,7 +44,7 @@ def update_goal(id):
     db.session.commit()
 
     return Response(status=204, mimetype="application/json")
-   
+
 @bp.delete("/<id>")
 def delect_goal(id):
     goal = validate_model(Goal, id)
@@ -52,12 +64,12 @@ def add_task_to_goal(goal_id):
     goal.tasks = tasks
     db.session.merge(goal)
     db.session.commit()
-    return goal.to_dict()
+    return {"id": goal.id, "task_ids": [task.id for task in goal.tasks]}
 
 @bp.get("/<goal_id>/tasks")
 def get_tasks_by_goal(goal_id):
     goal = validate_model(Goal, goal_id)
-    return goal.to_dict()
+    return {"id": goal.id, "title": goal.title, "tasks": [task.to_dict() for task in goal.tasks]}
 
 
 

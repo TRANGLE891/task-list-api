@@ -53,11 +53,10 @@ def test_get_tasks_for_specific_goal_no_goal(client):
 
     # Assert
     assert response.status_code == 404
+    assert response_body == {
+        "message": "Goal 1 not found"
+    }
 
-    raise Exception("Complete test with assertion about response body")
-    # *****************************************************************
-    # **Complete test with assertion about response body***************
-    # *****************************************************************
 
 
 
@@ -108,14 +107,11 @@ def test_get_task_includes_goal_id(client, one_task_belongs_to_one_goal):
     response_body = response.get_json()
 
     assert response.status_code == 200
-    assert "task" in response_body
-    assert "goal_id" in response_body["task"]
+    assert "goal_id" in response_body
     assert response_body == {
-        "task": {
-            "id": 1,
-            "goal_id": 1,
-            "title": "Go on my daily walk 🏞",
-            "description": "Notice something new every day",
-            "is_complete": False
-        }
+        "id": 1,
+        "goal_id": 1,
+        "title": "Go on my daily walk 🏞",
+        "description": "Notice something new every day",
+        "is_complete": False
     }

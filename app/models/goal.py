@@ -16,6 +16,12 @@ class Goal(db.Model):
             'tasks': [ task.to_dict() for task in self.tasks]
         }
 
+    def to_summary_dict(self):
+        dictionary = {"id": self.id, "title": self.title}
+        if (self.description):
+            dictionary['description'] = self.description
+        return dictionary
+
     @classmethod
     def from_dict(cls, dict_data: dict):
         goal = Goal(

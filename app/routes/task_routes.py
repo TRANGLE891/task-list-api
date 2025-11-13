@@ -76,8 +76,9 @@ def mark_incomplete(id):
 
 @bp.get("/<id>")
 def get_tasks_by_id(id):
-    goal = validate_model(Task,id)
-    return goal.to_dict()
+    task = validate_model(Task, id)
+    # Otherwise return the plain task dict without goal_id
+    return task.to_dict()
 
 
 
