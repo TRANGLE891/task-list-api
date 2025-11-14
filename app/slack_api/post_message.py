@@ -2,7 +2,10 @@ import os
 import requests
 token = os.environ.get("SLACK_BOT_TOKEN")
 
-url = "https://slack.com/api/chat.postMessage"
+
+
+url = os.environ.get("SLACK_API_URL")
+
 def post_message_with_slack_bot(text: str) -> dict:
     headers = {
 		"Authorization": f"Bearer {token}",

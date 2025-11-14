@@ -38,19 +38,15 @@ def get_one_goal(id):
 def update_goal(id):
     goal = validate_model(Goal, id)
     request_body = request.get_json()
-    updated_goal = Goal.from_dict(request_body)
-    updated_goal.id = id
-    db.session.merge(updated_goal)
+    goal.title = request_body.get("title")
     db.session.commit()
-
     return Response(status=204, mimetype="application/json")
 
 @bp.delete("/<id>")
-def delect_goal(id):
+def delete_goal(id):
     goal = validate_model(Goal, id)
     db.session.delete(goal)
     db.session.commit()
-
     return Response(status=204, mimetype="application/json")
 
 @bp.post("/<goal_id>/tasks")
@@ -59,10 +55,9 @@ def add_task_to_goal(goal_id):
     request_body = request.get_json()   
     tasks = []
     for task_id in request_body['task_ids']:
-        query = db.select(Task).where(Task.id == task_id)
-        tasks.append(db.session.scalar(query))
+        task = validate_model(Task, task_id)
+        tasks.append(task)
     goal.tasks = tasks
-    db.session.merge(goal)
     db.session.commit()
     return {"id": goal.id, "task_ids": [task.id for task in goal.tasks]}
 

@@ -18,7 +18,6 @@ def validate_model(cls, model_id):
     return model
 
 
-
 def create_model(cls, model_data):
     try:
         new_model = cls.from_dict(model_data)       
@@ -32,12 +31,17 @@ def create_model(cls, model_data):
     return new_model.to_dict(), 201
 
 
-def get_models_with_filters(cls, filters=None):
+def build_query_with_filters(cls, filters=None):
     query = db.select(cls)   
     if filters:
         for attribute, value in filters.items():
-            if hasattr(cls, attribute):
+            if hasattr(cls, attribute) and value is not None:
                 query = query.where(getattr(cls, attribute).ilike(f"%{value}%"))
+    return query
+    
+
+def get_models_with_filters(cls, filters=None):
+    query = build_query_with_filters(cls, filters)
 
     models = db.session.scalars(query.order_by(cls.id))
     models_response = [model.to_dict() for model in models]

@@ -5,10 +5,6 @@ from .db import db, migrate
 from .models import task, goal
 import os
 
-DB_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
-if (DB_URI is None):
-    print('DB_URI not found')
-
 def create_app(config=None):
     app = Flask(__name__)
 
@@ -23,11 +19,7 @@ def create_app(config=None):
         # to override the app's default settings for testing
         app.config.update(config)
 
-    print("Migrating db...")
     db.init_app(app)
     migrate.init_app(app, db)
-
-    # Register Blueprints here
-
     return app
 

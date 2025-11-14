@@ -200,9 +200,6 @@ def test_update_task(client, one_task):
     assert task.completed_at == None
 
 
-
-
-
 def test_update_task_not_found(client):
     # Act
     response = client.put("/tasks/1", json={

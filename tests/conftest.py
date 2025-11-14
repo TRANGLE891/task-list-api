@@ -27,7 +27,7 @@ def app():
         db.create_all()
         yield app
 
-    # close and remove the temporary database
+
     with app.app_context():
         db.drop_all()
 
